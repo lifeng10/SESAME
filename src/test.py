@@ -64,7 +64,7 @@ def Preprocess(file_list):
 # 得到每个文档中所有关键字的tfidf
 # P是一个矩阵，每行对应每个文档，每列对应字典中的每个单词的词频
 def Vect_files(file_list):
-    tfidf = TfidfVectorizer(max_df=0.85, min_df=0.0000001, max_features=1500, encoding='latin-1', stop_words="english")
+    tfidf = TfidfVectorizer(max_df=0.85, min_df=0.05, max_features=500, encoding='latin-1', stop_words="english")
     X_tfidf = tfidf.fit_transform(file_list)
     dictionary = tfidf.get_feature_names()
     P = X_tfidf.toarray()
@@ -82,38 +82,29 @@ def obj2csv(obj, path):
 
 
 if __name__ == '__main__':
-    filelist = Read_file("20_newsgroups")
-    Flist = Preprocess(filelist[500:10500])
-    dictionary, P = Vect_files(Flist)
-    obj2csv(dictionary, "/Users/carotpa/PaperCode/20200928VBSFB/ExperimentData/dictionary1500.pkl")
-    obj2csv(P, "/Users/carotpa/PaperCode/20200928VBSFB/ExperimentData/p1500.pkl")
+    # filelist = Read_file("/Users/carotpa/PaperCode/00_Enron_DataSet/01_SelectedFiles")
+    # Flist = Preprocess(filelist)
+    # dictionary, P = Vect_files(Flist)
+    # obj2csv(dictionary, "/Users/carotpa/PaperCode/00_Enron_DataSet/02_TFIDF_Extracted/dictionary500_189513.pkl")
+    # obj2csv(P, "/Users/carotpa/PaperCode/00_Enron_DataSet/02_TFIDF_Extracted/p500_189513.pkl")
 
-    # with open("dictionary.pkl", "rb") as file:
-    #     obj = pickle.load(file)
-    # print(obj)
-    # print(len(obj))
-    #
-    # with open("/Users/carotpa/PaperCode/20200928VBSFB/ExperimentData/dictionary1500.pkl", "rb") as file:
-    #     obj = pickle.load(file)
-    # print(obj)
-    # print(len(obj))
-    #
-    # with open("p.pkl", "rb") as file:
-    #     obj = pickle.load(file)
-    # print(obj)
-    # print(obj.shape)
-    #
-    # with open("/Users/carotpa/PaperCode/20200928VBSFB/ExperimentData/p1500.pkl", "rb") as file:
-    #     obj = pickle.load(file)
-    # print(obj)
-    # print(obj.shape)
+    path = "/Users/carotpa/PaperCode/00_Enron_DataSet/02_TFIDF_Extracted/dictionary100.pkl"
+    with open(path, 'rb') as file:
+        dictionary100 = pickle.load(file)
 
+    path = "/Users/carotpa/PaperCode/00_Enron_DataSet/02_TFIDF_Extracted/p100.pkl"
+    with open(path, 'rb') as file:
+        p100 = pickle.load(file)
 
-    # print(dictionary)
-    # print(len(dictionary))
-    # print(P)
-    # print(len(P))
-    # file_list, dirs_list, root_list = os.walk("testFile")
-    # print(file_list)
-    # print(dirs_list)
-    # print(root_list)
+    # name_dic = [i for i in range(100)]
+    # dictionary = pd.DataFrame(columns=name_dic, data=dictionary100)
+    #
+    # name_p = dictionary100
+    # p =
+
+    print(dictionary100)
+    print(p100)
+
+    name = ['file id']
+    # for file in p100:
+
