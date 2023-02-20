@@ -1,4 +1,5 @@
 import mmh3
+from BSSE import *
 
 
 class BloomFilter:
@@ -23,5 +24,6 @@ class BloomFilter:
 
 
 if __name__ == "__main__":
-    for i in range(5):
-        print(mmh3.hash("123", i) % 10000000)
+    q = [["becaus", "busi"], ["contact", "corp", "email"], ["pleas", "note", "time"]]
+    path = '/Users/carotpa/PaperCode/00_Enron_DataSet/01_SelectedFiles/999/111/q.pkl'
+    obj2pkl(q, path)
