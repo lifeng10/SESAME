@@ -1,3 +1,4 @@
+import multiprocessing
 import sys
 import pickle
 import csv
@@ -9,6 +10,7 @@ from src.helpers.helpers import get_int
 from charm.core.math.integer import integer
 from charm.toolbox.integergroup import IntegerGroup
 import gc
+from multiprocessing import Pool
 
 
 def obj2pkl(obj, path):
@@ -121,11 +123,43 @@ class BSSE_Protocol:
     def Setup(self, DB, p):
         BF_DB = {}
         mpk, msk = self.fe.set_up(p, self.size)
+        count = 0
         for row in DB:
             bf_row = [0] * self.size
             bf_row = self.add_list(bf_row, row[1:])
             encrypted_bf = self.fe.encrypt(mpk, bf_row)
             BF_DB[row[0]] = encrypted_bf
+            count = count + 1
+            if count % 1000 == 0:
+                print("has encrypted %d records." % count)
+        return BF_DB, mpk, msk
+
+    def subprocess(self, DB, mpk):
+        sub_EDB = {}
+        for row in DB:
+            bf_row = [0] * self.size
+            bf_row = self.add_list(bf_row, row[1:])
+            encrypted_bf = self.fe.encrypt(mpk, bf_row)
+            sub_EDB[row[0]] = encrypted_bf
+        return sub_EDB
+
+    def Setup_multiprocess(self, DB, p):
+        BF_DB = {}
+        mpk, msk = self.fe.set_up(p, self.size)
+        pool = multiprocessing.Pool(4)
+        results = []
+        block_size = (len(DB) // 64) + 1
+        for i in range(4):
+            results.append(pool.apply_async(self.subprocess, (DB[i*block_size:(i+1)*block_size], mpk)))
+        pool.close()
+        pool.join()
+        count_number = 0
+        for res in results:
+            sub_EDB = res.get()
+            for key, value in sub_EDB.items():
+                BF_DB[key] = value
+                count_number = count_number + 1
+        print("count_number: ", count_number)
         return BF_DB, mpk, msk
 
     def gen_token_client_Conj(self, q, mpk, msk, dummy_keyword=''):
@@ -224,11 +258,11 @@ class BSSE_Protocol:
                     break
         return result_list
 
-    def true_result(self, q):
-        path = '/Users/carotpa/PaperCode/00_Enron_DataSet/02_TFIDF_Extracted/keyword100_files100.csv'
+    def true_result(self, q, path_kf):
+        # path = '/Users/carotpa/PaperCode/00_Enron_DataSet/02_TFIDF_Extracted/keyword100_files100.csv'
 
         # 只是读取DB和过滤空字符串，没有对DB进行剪枝，即坐标轴还在DB中
-        with open(path, 'r', encoding='utf-8') as f:
+        with open(path_kf, 'r', encoding='utf-8') as f:
             reader = csv.reader(f)
             DB = [row for row in reader]
             for i in range(len(DB)):
@@ -253,8 +287,8 @@ class BSSE_Protocol:
 
         return true_result_list
 
-    def precision_Conj(self, result_list, q):
-        true_result_list = self.true_result(q)
+    def precision_Conj(self, result_list, q, path_kf):
+        true_result_list = self.true_result(q, path_kf)
 
         search_result_list = []
         for item in list(result_list):
@@ -272,10 +306,10 @@ class BSSE_Protocol:
         accuracy = float(len(true_result_list)) / float(len(search_result_list))
         print(accuracy)
 
-    def precision_DNF(self, result_list, q):
+    def precision_DNF(self, result_list, q, path_kf):
         true_result_list = []
         for row in q:
-            true_result_list = true_result_list + self.true_result(row)
+            true_result_list = true_result_list + self.true_result(row, path_kf)
         true_result_list = list(set(true_result_list))
 
         search_result_list = []
@@ -283,7 +317,7 @@ class BSSE_Protocol:
             search_result_list.append(int(float(item)))
         search_result_list.sort()
 
-        print("true list: ", true_result_list)
+        # print("true list: ", true_result_list)
         flag = True
         for item in true_result_list:
             if item not in search_result_list:
@@ -299,6 +333,7 @@ class BSSE_Protocol:
 
 def Conjunctive_query():
     path = '/Users/carotpa/PaperCode/00_Enron_DataSet/02_TFIDF_Extracted/file100_keyword100_list.csv'
+    path_kf = '/Users/carotpa/PaperCode/00_Enron_DataSet/02_TFIDF_Extracted/keyword100_files100.csv'
 
     # 只是读取DB和过滤空字符串，没有对DB进行剪枝，即坐标轴还在DB中
     with open(path, 'r', encoding='utf-8') as f:
@@ -315,10 +350,11 @@ def Conjunctive_query():
     alpha, func_key, trap = bsse.gen_token_client_Conj(q, mpk, msk)
     result_list = bsse.Search_Conj(alpha, trap, func_key, mpk, BF_DB)
     print("search result list", result_list)
-    bsse.precision_Conj(result_list, q)
+    bsse.precision_Conj(result_list, q, path_kf)
 
 def Conjunctive_query_prune():
     path = '/Users/carotpa/PaperCode/00_Enron_DataSet/02_TFIDF_Extracted/file100_keyword100_list.csv'
+    path_kf = '/Users/carotpa/PaperCode/00_Enron_DataSet/02_TFIDF_Extracted/keyword100_files100.csv'
 
     # 只是读取DB和过滤空字符串，没有对DB进行剪枝，即坐标轴还在DB中
     with open(path, 'r', encoding='utf-8') as f:
@@ -335,10 +371,11 @@ def Conjunctive_query_prune():
     alpha, beta, func_key, trap_prune = bsse.gen_token_client_Conj_prune(q, mpk, msk)
     result_list = bsse.Search_Conj_prune(alpha, beta, trap_prune, func_key, mpk, BF_DB)
     print("search result list", result_list)
-    bsse.precision_Conj(result_list, q)
+    bsse.precision_Conj(result_list, q, path_kf)
 
 def DNF_query():
     path = '/Users/carotpa/PaperCode/00_Enron_DataSet/02_TFIDF_Extracted/file100_keyword100_list.csv'
+    path_kf = '/Users/carotpa/PaperCode/00_Enron_DataSet/02_TFIDF_Extracted/keyword100_files100.csv'
 
     # 只是读取DB和过滤空字符串，没有对DB进行剪枝，即坐标轴还在DB中
     with open(path, 'r', encoding='utf-8') as f:
@@ -355,10 +392,11 @@ def DNF_query():
     alpha_list, func_key_list, trap_list = bsse.gen_token_client_DNF(q, mpk, msk)
     result_list = bsse.Search_DNF(alpha_list, func_key_list, mpk, BF_DB, trap_list)
     print("search result list", result_list)
-    bsse.precision_DNF(result_list, q)
+    bsse.precision_DNF(result_list, q, path_kf)
 
 def DNF_query_prune():
     path = '/Users/carotpa/PaperCode/00_Enron_DataSet/02_TFIDF_Extracted/file100_keyword100_list.csv'
+    path_kf = '/Users/carotpa/PaperCode/00_Enron_DataSet/02_TFIDF_Extracted/keyword100_files100.csv'
 
     # 只是读取DB和过滤空字符串，没有对DB进行剪枝，即坐标轴还在DB中
     with open(path, 'r', encoding='utf-8') as f:
@@ -375,11 +413,12 @@ def DNF_query_prune():
     alpha_list, beta_list, func_key_list, trap_list = bsse.gen_token_client_DNF_prune(q, mpk, msk)
     result_list = bsse.Search_DNF_prune(alpha_list, beta_list, trap_list, func_key_list, mpk, BF_DB)
     print("search result list", result_list)
-    bsse.precision_DNF(result_list, q)
+    bsse.precision_DNF(result_list, q, path_kf)
 
 
 def test_Code(q, bf_size, bf_hash_count, group_prime):
     path = '/Users/carotpa/PaperCode/00_Enron_DataSet/02_TFIDF_Extracted/file100_keyword100_list.csv'
+    path_kf = '/Users/carotpa/PaperCode/00_Enron_DataSet/02_TFIDF_Extracted/keyword100_files100.csv'
 
     # 只是读取DB和过滤空字符串，没有对DB进行剪枝，即坐标轴还在DB中
     with open(path, 'r', encoding='utf-8') as f:
@@ -407,14 +446,14 @@ def test_Code(q, bf_size, bf_hash_count, group_prime):
     T_Search = T2_Search - T1_Search
 
     print("search result list", result_list)
-    accuracy = bsse.precision_DNF(result_list, q)
+    accuracy = bsse.precision_DNF(result_list, q, path_kf)
 
     return T_Setup, T_gentoken, T_Search, accuracy
 
 
-def test():
-# if __name__ == "__main__":
+if __name__ == "__main__":
     path = '/Users/carotpa/PaperCode/00_Enron_DataSet/02_TFIDF_Extracted/file100_keyword100_list.csv'
+    path_kf = '/Users/carotpa/PaperCode/00_Enron_DataSet/02_TFIDF_Extracted/keyword100_files100.csv'
 
     # 只是读取DB和过滤空字符串，没有对DB进行剪枝，即坐标轴还在DB中
     with open(path, 'r', encoding='utf-8') as f:
@@ -430,7 +469,7 @@ def test():
     alpha_list, func_key_list, trap_list = bsse.gen_token_client_DNF(q, mpk, msk)
     result_list = bsse.Search_DNF(alpha_list, func_key_list, mpk, BF_DB, trap_list)
     print("search result list", result_list)
-    bsse.precision_DNF(result_list, q)
+    bsse.precision_DNF(result_list, q, path_kf)
     print()
 
     print("After Deserialize!")
@@ -449,7 +488,7 @@ def test():
     alpha_list, func_key_list, trap_list = bsse.gen_token_client_DNF(q, mpk_Deser, msk_Deser)
     result_list = bsse.Search_DNF(alpha_list, func_key_list, mpk_Deser, EDB_Deser, trap_list)
     print("search result list", result_list)
-    bsse.precision_DNF(result_list, q)
+    bsse.precision_DNF(result_list, q, path_kf)
 
 
 #========================Test Code for Serialize=============================
