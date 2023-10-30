@@ -1,5 +1,3 @@
-import pickle
-import matplotlib.pyplot as plt
 import statistics
 
 
@@ -18,33 +16,14 @@ def compute_avg(test_times):
     filtered_times = [time for time in test_times if abs(time - avg_time) <= std_dev]
 
     # 计算过滤后的平均时间
-    if len(filtered_times) == 0:
-        filtered_avg_time = 0
-    else:
-        filtered_avg_time = sum(filtered_times) / len(filtered_times)
+    filtered_avg_time = sum(filtered_times) / len(filtered_times)
 
     print("平均时间：", avg_time)
     print("去掉明显有区别的数值后的平均时间：", filtered_avg_time)
     return filtered_avg_time
 
 
-path = '/Users/carotpa/PaperCode/00_Enron_DataSet/Experiment_Result/BSSE/Final_result/result_prune_final_with_dummy.pkl'
-with open(path, "rb") as file:
-    dict = pickle.load(file)
+if __name__ == '__main__':
+    test_times = [4.347913690000496, 4.343033095999999, 4.407196828000451, 4.408172920999277, 4.355305499999304, 4.3548561690004135, 4.349492807999923, 4.400253275998693, 4.393933134999315, 4.349624946999029, 4.347913690000496, 4.343033095999999, 4.407196828000451, 4.408172920999277, 4.355305499999304, 4.3548561690004135, 4.349492807999923, 4.400253275998693, 4.393933134999315, 4.349624946999029]
 
-for key, value in dict.items():
-    print(key)
-    for item in value[1:3]:
-        # print(item)
-        s = compute_avg(item)
-
-# for key, value in dict.items():
-#     print(key)
-#     # print(value[2])
-#     ypoints = value[2]
-#     plt.figure(1)
-#     plt.plot(ypoints, linestyle='-.')
-#     plt.title(key)
-#     plt.draw()
-#     plt.pause(2)
-#     plt.close(1)
+    compute_avg(test_times)

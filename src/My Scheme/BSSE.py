@@ -134,6 +134,8 @@ class BSSE_Protocol:
                 print("has encrypted %d records." % count)
         return BF_DB, mpk, msk
 
+    # just try to implement the setup in multiprocess,
+    # but failed cause Element type can't be transfer between two functions
     def subprocess(self, DB, mpk):
         sub_EDB = {}
         for row in DB:
@@ -324,6 +326,8 @@ class BSSE_Protocol:
                 flag = False
         if flag:
             print("Search result pass!")
+        else:
+            print("Search result Failed!")
 
         accuracy = float(len(true_result_list)) / float(len(search_result_list))
         print(accuracy)
@@ -463,32 +467,35 @@ if __name__ == "__main__":
             DB[i] = list(filter(None, DB[i]))
 
     print("Before Serialize!")
-    bsse = BSSE_Protocol(300, 4)
-    BF_DB, mpk, msk = bsse.Setup(DB[2:], 256)
-    q = [["becaus", "busi"], ["contact", "corp", "email"], ["pleas", "note", "time"]]
-    alpha_list, func_key_list, trap_list = bsse.gen_token_client_DNF(q, mpk, msk)
-    result_list = bsse.Search_DNF(alpha_list, func_key_list, mpk, BF_DB, trap_list)
-    print("search result list", result_list)
-    bsse.precision_DNF(result_list, q, path_kf)
-    print()
+    bsse = BSSE_Protocol(2400, 2)
+    BF_DB, mpk, msk = bsse.Setup(DB[2:5], 256)
+    q = [['contact', 'custom', 'inform'], ['sent', 'want', 'make']]
+    dummy_keyword_list = ["234dfsf", "734dfh"]
+    alpha_list, beta_list, func_key_list, trap_list = bsse.gen_token_client_DNF_prune(q, mpk, msk, dummy_keyword_list)
+    total_size = sys.getsizeof(alpha_list) + sys.getsizeof(beta_list) + sys.getsizeof(func_key_list) + sys.getsizeof(trap_list)
+    print(total_size)
+    # result_list = bsse.Search_DNF(alpha_list, func_key_list, mpk, BF_DB, trap_list)
+    # print("search result list", result_list)
+    # bsse.precision_DNF(result_list, q, path_kf)
+    # print()
 
-    print("After Deserialize!")
-    pickle_EDB_Serialize(BF_DB, "/Users/carotpa/PaperCode/00_Enron_DataSet/EDB.pkl")
-    pickle_mpk_serialize(mpk, "/Users/carotpa/PaperCode/00_Enron_DataSet/mpk.pkl")
-    pickle_msk_serialize(msk, "/Users/carotpa/PaperCode/00_Enron_DataSet/msk.pkl")
+    # print("After Deserialize!")
+    # pickle_EDB_Serialize(BF_DB, "/Users/carotpa/PaperCode/00_Enron_DataSet/EDB.pkl")
+    # pickle_mpk_serialize(mpk, "/Users/carotpa/PaperCode/00_Enron_DataSet/mpk.pkl")
+    # pickle_msk_serialize(msk, "/Users/carotpa/PaperCode/00_Enron_DataSet/msk.pkl")
 
-    del bsse, BF_DB, mpk, msk, alpha_list, func_key_list, trap_list, result_list
-    gc.collect()
+    # del bsse, BF_DB, mpk, msk, alpha_list, func_key_list, trap_list, result_list
+    # gc.collect()
 
-    mpk_Deser = pickle_mpk_deserialize("/Users/carotpa/PaperCode/00_Enron_DataSet/mpk.pkl")
-    msk_Deser = pickle_msk_deserialize("/Users/carotpa/PaperCode/00_Enron_DataSet/msk.pkl", mpk_Deser)
-    EDB_Deser = pickle_EDB_Deserialize("/Users/carotpa/PaperCode/00_Enron_DataSet/EDB.pkl", mpk_Deser)
+    # mpk_Deser = pickle_mpk_deserialize("/Users/carotpa/PaperCode/00_Enron_DataSet/mpk.pkl")
+    # msk_Deser = pickle_msk_deserialize("/Users/carotpa/PaperCode/00_Enron_DataSet/msk.pkl", mpk_Deser)
+    # EDB_Deser = pickle_EDB_Deserialize("/Users/carotpa/PaperCode/00_Enron_DataSet/EDB.pkl", mpk_Deser)
 
-    bsse = BSSE_Protocol(300, 4)
-    alpha_list, func_key_list, trap_list = bsse.gen_token_client_DNF(q, mpk_Deser, msk_Deser)
-    result_list = bsse.Search_DNF(alpha_list, func_key_list, mpk_Deser, EDB_Deser, trap_list)
-    print("search result list", result_list)
-    bsse.precision_DNF(result_list, q, path_kf)
+    # bsse = BSSE_Protocol(300, 4)
+    # alpha_list, func_key_list, trap_list = bsse.gen_token_client_DNF(q, mpk_Deser, msk_Deser)
+    # result_list = bsse.Search_DNF(alpha_list, func_key_list, mpk_Deser, EDB_Deser, trap_list)
+    # print("search result list", result_list)
+    # bsse.precision_DNF(result_list, q, path_kf)
 
 
 #========================Test Code for Serialize=============================

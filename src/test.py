@@ -16,6 +16,7 @@ import string
 from sklearn.feature_extraction.text import TfidfVectorizer
 import pickle
 import pandas as pd
+import csv
 
 
 # 提取文档中的关键字，并计算对应关键字的tfidf
@@ -174,13 +175,32 @@ if __name__ == '__main__':
     # keyword_files.to_csv('/Users/carotpa/PaperCode/00_Enron_DataSet/02_TFIDF_Extracted/keyword100_files100.csv', encoding='gbk')
 
     # ==========Test===============
-    path = "/Users/carotpa/PaperCode/00_Enron_DataSet/02_TFIDF_Extracted/dictionary100.pkl"
-    with open(path, 'rb') as file:
-        dictionary100 = pickle.load(file)
+    # path = "/Users/carotpa/PaperCode/00_Enron_DataSet/02_TFIDF_Extracted/dictionary100.pkl"
+    # with open(path, 'rb') as file:
+    #     dictionary100 = pickle.load(file)
+    #
+    # path = "/Users/carotpa/PaperCode/00_Enron_DataSet/02_TFIDF_Extracted/p100.pkl"
+    # with open(path, 'rb') as file:
+    #     p100 = pickle.load(file)
+    #
+    # print(dictionary100)
+    # print(p100)
 
-    path = "/Users/carotpa/PaperCode/00_Enron_DataSet/02_TFIDF_Extracted/p100.pkl"
-    with open(path, 'rb') as file:
-        p100 = pickle.load(file)
+    data_path = '/Users/carotpa/PaperCode/00_Enron_DataSet/02_TFIDF_Extracted/10KB/file_keyword500_list.csv'
+    path_kf = '/Users/carotpa/PaperCode/00_Enron_DataSet/02_TFIDF_Extracted/10KB/keywords500_files.csv'
 
-    print(dictionary100)
-    print(p100)
+    # with open(data_path, 'r', encoding='utf-8') as f:
+    #     reader = csv.reader(f)
+    #     DB = [row for row in reader]
+    #     for row in DB[1:5]:
+    #         print(row)
+    #         print(len(row))
+
+    with open(path_kf, 'r', encoding='utf-8') as f:
+        sum = 0
+        reader = csv.reader(f)
+        DB = [row for row in reader]
+        for row in DB[1:]:
+            row = list(filter(None, row[1:]))
+            sum = sum + len(row)
+        print(sum)

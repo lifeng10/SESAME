@@ -1,5 +1,4 @@
 import pickle
-import matplotlib.pyplot as plt
 import statistics
 
 
@@ -9,6 +8,7 @@ def compute_avg(test_times):
 
     # 计算平均时间
     avg_time = sum(test_times) / len(test_times)
+    print("平均时间：", avg_time)
 
     # 计算差值的标准差
     diffs = [abs(time - avg_time) for time in test_times]
@@ -19,32 +19,44 @@ def compute_avg(test_times):
 
     # 计算过滤后的平均时间
     if len(filtered_times) == 0:
-        filtered_avg_time = 0
+        filtered_avg_time = avg_time
     else:
         filtered_avg_time = sum(filtered_times) / len(filtered_times)
 
-    print("平均时间：", avg_time)
     print("去掉明显有区别的数值后的平均时间：", filtered_avg_time)
     return filtered_avg_time
 
-
-path = '/Users/carotpa/PaperCode/00_Enron_DataSet/Experiment_Result/BSSE/Final_result/result_prune_final_with_dummy.pkl'
+path = '/Users/carotpa/PaperCode/00_Enron_DataSet/Experiment_Result/CNFFilter/experiment_result/result_final.pkl'
 with open(path, "rb") as file:
     dict = pickle.load(file)
 
+token_time = []
+search_time = []
+accuracy = []
 for key, value in dict.items():
+    # if "bf_size: 2400, bf_hash_count: 2," in key:
     print(key)
-    for item in value[1:3]:
-        # print(item)
-        s = compute_avg(item)
-
-# for key, value in dict.items():
-#     print(key)
-#     # print(value[2])
-#     ypoints = value[2]
-#     plt.figure(1)
-#     plt.plot(ypoints, linestyle='-.')
-#     plt.title(key)
-#     plt.draw()
-#     plt.pause(2)
-#     plt.close(1)
+    # for item in value:
+    #     print(item)
+    # break
+    print(value[2])
+    # print(value[3])
+    search_time.append(compute_avg(value[2]))
+    # print(value[6])
+    # accuracy.append(value[2][0])
+    # print(value[1])
+    # token_time.append(compute_avg(value[1]))
+    # print(value[2])
+    # search_time.append(compute_avg(value[2]))
+    # print(value[3])
+    # accuracy.append(value[3][0])
+# print('================================================================================')
+# print('token time')
+# for item in token_time:
+#     print(item)
+print('search time')
+for item in search_time:
+    print(item)
+# print('accuracy')
+# for item in accuracy:
+#     print(item)

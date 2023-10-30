@@ -10,8 +10,8 @@ if __name__ == "__main__":
               [["note", "pleas", "mark"], ["mark", "inform", "mail"]],
               [["note", "pleas", "mark"], ["mark", "inform", "mail"], ["need", "make", "provid"]]
               ]
-    bf_size_list = [2100]
-    bf_hash_count_list = [2]
+    bf_size_list = [1200, 1800, 2400]
+    bf_hash_count_list = [2, 3, 4, 5]
     group_prime = 256
 
     # Encrypt database
