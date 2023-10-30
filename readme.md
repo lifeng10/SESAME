@@ -1,5 +1,6 @@
 The implementation of Paper "Beyond Volume Pattern: Storage-Efficient Boolean Searchable Symmetric Encryption with Suppressed Leakage", which is published in ESORICS'23
 
+<!--
 ## 简单说明
 *Enron* 数据集共有517439个文档 <br>
 *newsgroups* 数据集共有19998个文档 <br>
@@ -21,3 +22,4 @@ The implementation of Paper "Beyond Volume Pattern: Storage-Efficient Boolean Se
 的参数
 #### 设置说明
 测试git
+-->
